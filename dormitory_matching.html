@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寝室匹配 · 交互原型</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+    <style>
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #eef0fb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px 48px;
+        }
+
+        .prototype-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            letter-spacing: 0.03em;
+        }
+
+        .screen-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 18px;
+            max-width: 400px;
+            justify-content: center;
+        }
+
+        .screen-tab {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+            background: transparent;
+            color: #64748b;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+
+        .screen-tab.active {
+            background: #dde1f5;
+            color: #1e1b4b;
+            border-color: #8b95e0;
+        }
+
+        /* 手机外壳 */
+        .phone-shell {
+            width: 360px;
+            border-radius: 40px;
+            border: 2.5px solid #c4cad8;
+            background: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(84, 97, 240, 0.14), 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            background: #5461f0;
+            color: white;
+            padding: 10px 20px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .status-time {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .status-title {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 16px;
+        }
+
+        /* 手机内容区 */
+        .phone-body {
+            height: 628px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CSS 变量 */
+        :root {
+            --primary: #5461f0;
+            --primary-light: #eceffe;
+            --success: #22c55e;
+            --success-light: #dcfce7;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --accent: #ff7e5f;
+            --accent-light: #fff0ec;
+            --page-bg: #f3f5ff;
+            --card-bg: #ffffff;
+            --text-primary: #1e1b4b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+        }
+
+        /* 界面 */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: var(--page-bg);
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 0;
+        }
+
+        /* 顶部栏 */
+        .app-header {
+            background: var(--card-bg);
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            height: auto;
+            min-height: 56px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 消息顶部 Tab 固定样式 - 修复变形核心 */
+        .inbox-tabs {
+            display: flex;
+            width: 100%;
+            margin-top: 8px;
+            height: 40px; /* 固定高度，防止压缩 */
+        }
+        .inbox-tab {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+        .inbox-tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 22px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        /* 标签 */
+        .tag {
+            background: var(--primary-light);
+            color: #3730a3;
+            border-radius: 20px;
+            padding: 3px 9px;
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .tag.green  { background: var(--success-light); color: #166534; }
+        .tag.amber  { background: var(--warning-light); color: #92400e; }
+        .tag.red    { background: #fee2e2; color: #991b1b; }
+
+        /* 选项按钮 */
+        .pill-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .pill-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* 主按钮 */
+        .btn-primary {
+            width: 100%;
+            padding: 14px 0;
+            border-radius: 14px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-primary:active {
+            opacity: 0.85;
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            display: flex;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 10px;
+            gap: 3px;
+            transition: color 0.15s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        /* 头像 */
+        .avatar {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        /* 输入框 */
+        .field {
+            width: 100%;
+            background: var(--page-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 11px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: border-color 0.15s;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea.field {
+            resize: none;
+            line-height: 1.7;
+            font-family: inherit;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 2px 0;
+        }
+
+        .progress-track {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* 问卷分区标题 */
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin: 14px 0 6px 4px;
+        }
+
+        /* 修复全局 *::before 样式对图标字体的污染 */
+        .ti::before,
+        [class^="ti-"]::before,
+        [class*=" ti-"]::before {
+            font-family: "tabler-icons" !important;
+            font-style: normal;
+            font-weight: normal;
+            font-variant: normal;
+            text-transform: none;
+            line-height: 1;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 88px;
+            left: 50%;
+            transform: translateX(-50%) translateY(14px);
+            background: rgba(30, 27, 75, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            opacity: 0;
+            transition: all 0.25s;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 聊天界面样式 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--page-bg);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message-sent {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-received {
+            align-self: flex-start;
+            background: white;
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .chat-input-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .chat-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <p class="prototype-label">寝室匹配 · 交互原型演示</p>
+    <div class="screen-tabs" id="screenTabs"></div>
+
+    <div class="phone-shell">
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <span class="status-title">寝室匹配</span>
+            <div class="status-icons">
+                <i class="ti ti-wifi"></i>
+                <i class="ti ti-battery-3"></i>
+            </div>
+        </div>
+
+        <div class="phone-body">
+
+
+            <!-- ===== 欢迎页 ===== -->
+            <div class="screen active" id="screen-0">
+
+                <div class="scroll-area" style="display: flex; flex-direction: column; align-items: center; padding: 28px 20px 12px; gap: 16px;">
+
+                    <div style="width: 68px; height: 68px; border-radius: 20px; background: var(--primary); display: flex; align-items: center; justify-content: center; margin-top: 8px; box-shadow: 0 8px 24px rgba(84,97,240,0.35);">
+                        <i class="ti ti-home-2" style="font-size: 30px; color: white;"></i>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <p style="font-size: 24px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.5px;">寝室匹配</p>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.75;">找到与你作息同频的理想舍友</p>
+                    </div>
+
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 11px; background: var(--card-bg); border-radius: 12px; padding: 10px 14px;">
+                            <i class="ti ti-clock" style="font-size: 17px; color: var(--primary);"></i>
+                            <span style="font-size: 12px; color: var(--text-secondary);">作息习惯智能匹配</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 11px; background: var(--card-bg); border-radius: 12px; padding: 10px 14px;">
+                            <i class="ti ti-message-circle" style="font-size: 17px; color: var(--primary);"></i>
+                            <span style="font-size: 12px; color: var(--text-secondary);">直接发起联系申请</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 11px; background: var(--card-bg); border-radius: 12px; padding: 10px 14px;">
+                            <i class="ti ti-shield-check" style="font-size: 17px; color: var(--primary);"></i>
+                            <span style="font-size: 12px; color: var(--text-secondary);">学号实名，安全可信</span>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div style="padding: 10px 20px 12px; background: var(--card-bg); border-top: 1px solid var(--border);">
+                    <button class="btn-primary" onclick="goTo(1)">立即开始</button>
+                    <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 9px;">
+                        已有账号？<span style="color: var(--primary); cursor: pointer;" onclick="goTo(3)">登录</span>
+                    </p>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item active" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 注册信息 ===== -->
+            <div class="screen" id="screen-1">
+
+                <div class="app-header">
+                    <div class="header-row" style="margin-bottom: 10px;">
+                        <button class="back-btn" onclick="goTo(0)">
+                            <i class="ti ti-arrow-left"></i>
+                        </button>
+                        <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">创建账号</span>
+                        <span style="margin-left: auto; font-size: 11px; color: var(--text-muted);">1 / 3</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 33%;"></div>
+                    </div>
+                </div>
+
+                <div class="scroll-area" style="padding: 14px; display: flex; flex-direction: column; gap: 13px;">
+
+                    <div style="display: flex; justify-content: center; padding: 4px 0;">
+                        <div style="position: relative; cursor: pointer;" onclick="showToast('头像上传功能即将上线')">
+                            <div style="width: 68px; height: 68px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; border: 2px dashed #a5b4fc;">
+                                <i class="ti ti-user" style="font-size: 28px; color: var(--primary);"></i>
+                            </div>
+                            <div style="position: absolute; bottom: 1px; right: 1px; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; border: 2px solid white;">
+                                <i class="ti ti-plus" style="font-size: 11px; color: white;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p style="font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 5px;">姓名</p>
+                        <input class="field" type="text" id="userName" placeholder="请输入真实姓名">
+                    </div>
+
+                    <div>
+                        <p style="font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 5px;">学号</p>
+                        <input class="field" type="text" id="userStudentId" placeholder="用于学校身份核验">
+                    </div>
+
+                    <div>
+                        <p style="font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 5px;">院系</p>
+                        <input class="field" type="text" id="userCollege" placeholder="请输入所在学院">
+                    </div>
+
+                    <div>
+                        <p style="font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 7px;">年级</p>
+                        <div style="display: flex; gap: 6px;" data-group="grade">
+                            <button class="pill-btn" data-val="大一">大一</button>
+                            <button class="pill-btn" data-val="大二">大二</button>
+                            <button class="pill-btn selected" data-val="大三">大三</button>
+                            <button class="pill-btn" data-val="大四">大四</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p style="font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 7px;">性别</p>
+                        <div style="display: flex; gap: 6px;" data-group="gender">
+                            <button class="pill-btn" data-val="男">男</button>
+                            <button class="pill-btn selected" data-val="女">女</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="padding: 10px 18px 12px; background: var(--card-bg); border-top: 1px solid var(--border);">
+                    <button class="btn-primary" onclick="goTo(2)">下一步：填写作息习惯</button>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 作息问卷 ===== -->
+            <div class="screen" id="screen-2">
+
+                <div class="app-header">
+                    <div class="header-row" style="margin-bottom: 8px;">
+                        <button class="back-btn" onclick="goTo(1)">
+                            <i class="ti ti-arrow-left"></i>
+                        </button>
+                        <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">作息与生活习惯</span>
+                        <span style="margin-left: auto; font-size: 11px; color: var(--text-muted);">2 / 3</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 66%;"></div>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">参考国际室友匹配系统设计，帮你找到最合适的舍友</p>
+                </div>
+
+                <div class="scroll-area" style="padding: 12px 12px 6px;">
+
+                    <!-- 第一部分：作息时间 -->
+                    <p class="section-title">作息时间</p>
+
+                    <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px;">
+                                <i class="ti ti-moon" style="color: #6366f1;"></i>&nbsp;平时几点入睡？
+                            </p>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 9px;">工作日的通常就寝时间</p>
+                            <div style="display: flex; gap: 5px;" data-group="sleep">
+                                <button class="pill-btn" data-val="22前">22点前</button>
+                                <button class="pill-btn selected" data-val="22-24">22-24点</button>
+                                <button class="pill-btn" data-val="0-2">0-2点</button>
+                                <button class="pill-btn" data-val="2后">2点后</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px;">
+                                <i class="ti ti-sun" style="color: #f59e0b;"></i>&nbsp;平时几点起床？
+                            </p>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 9px;">工作日的通常起床时间</p>
+                            <div style="display: flex; gap: 5px;" data-group="wake">
+                                <button class="pill-btn" data-val="6前">6点前</button>
+                                <button class="pill-btn selected" data-val="7-8">7-8点</button>
+                                <button class="pill-btn" data-val="8-9">8-9点</button>
+                                <button class="pill-btn" data-val="9后">9点后</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-calendar-week" style="color: #8b5cf6;"></i>&nbsp;周末作息是否规律？
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="weekend">
+                                <button class="pill-btn selected" data-val="规律">基本规律</button>
+                                <button class="pill-btn" data-val="稍晚">会晚睡晚起</button>
+                                <button class="pill-btn" data-val="不固定">完全不固定</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 第二部分：生活习惯 -->
+                    <p class="section-title">生活习惯</p>
+
+                    <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px;">
+                                <i class="ti ti-sparkles" style="color: #f59e0b;"></i>&nbsp;整洁程度
+                            </p>
+                            <div id="starRating" style="display: flex; align-items: center; gap: 3px; cursor: pointer; user-select: none;">
+                                <span class="star" data-star="1" style="font-size: 24px; color: #f59e0b;">★</span>
+                                <span class="star" data-star="2" style="font-size: 24px; color: #f59e0b;">★</span>
+                                <span class="star" data-star="3" style="font-size: 24px; color: #f59e0b;">★</span>
+                                <span class="star" data-star="4" style="font-size: 24px; color: #f59e0b;">★</span>
+                                <span class="star" data-star="5" style="font-size: 24px; color: var(--border);">★</span>
+                                <span id="starLabel" style="font-size: 11px; color: var(--text-muted); margin-left: 8px;">较整洁</span>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-volume" style="color: #06b6d4;"></i>&nbsp;对噪音的容忍度
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="noise">
+                                <button class="pill-btn" data-val="敏感">很敏感</button>
+                                <button class="pill-btn selected" data-val="一般">一般</button>
+                                <button class="pill-btn" data-val="随意">不在乎</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-temperature" style="color: #ef4444;"></i>&nbsp;室温偏好
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="temp">
+                                <button class="pill-btn" data-val="凉快">偏凉快</button>
+                                <button class="pill-btn selected" data-val="适中">适中</button>
+                                <button class="pill-btn" data-val="温暖">偏温暖</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-lamp" style="color: #eab308;"></i>&nbsp;睡前关灯习惯
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="light">
+                                <button class="pill-btn selected" data-val="准时">必须关灯</button>
+                                <button class="pill-btn" data-val="无所谓">无所谓</button>
+                                <button class="pill-btn" data-val="开着">习惯开灯</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 第三部分：社交与访客 -->
+                    <p class="section-title">社交与空间</p>
+
+                    <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-door" style="color: #10b981;"></i>&nbsp;是否介意访客进宿舍？
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="guest">
+                                <button class="pill-btn selected" data-val="欢迎">欢迎来访</button>
+                                <button class="pill-btn" data-val="偶尔">偶尔OK</button>
+                                <button class="pill-btn" data-val="不接受">不接受</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-device-laptop" style="color: #6366f1;"></i>&nbsp;平时在宿舍学习/工作吗？
+                            </p>
+                            <div style="display: flex; gap: 6px;" data-group="study">
+                                <button class="pill-btn" data-val="经常">经常在</button>
+                                <button class="pill-btn selected" data-val="有时">有时</button>
+                                <button class="pill-btn" data-val="很少">去图书馆</button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div>
+                            <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">
+                                <i class="ti ti-share" style="color: #f59e0b;"></i>&nbsp;是否介意共用日用品？
+                            </p>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">如纸巾、洗手液、充电器等</p>
+                            <div style="display: flex; gap: 6px;" data-group="share">
+                                <button class="pill-btn selected" data-val="随意">无所谓</button>
+                                <button class="pill-btn" data-val="打招呼">打声招呼就行</button>
+                                <button class="pill-btn" data-val="介意">各用各的</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 第四部分：自我介绍 -->
+                    <p class="section-title">自我介绍</p>
+
+                    <div class="card">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">
+                            <i class="ti ti-pencil" style="color: var(--primary);"></i>&nbsp;用自己的话说说吧
+                        </p>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">介绍你的日常习惯、爱好，或者你理想的舍友是什么样的</p>
+                        <textarea
+                            id="bioInput"
+                            class="field"
+                            oninput="updateBioCounter()"
+                            maxlength="300"
+                            rows="5"
+                            placeholder="例如：我是大三计科生，平时作息比较规律，晚上喜欢追剧但会戴耳机，对整洁有一定要求。希望找到作息相近、互相尊重的舍友～"
+                        ></textarea>
+                        <p id="bioCounter" style="text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 5px;">0 / 300</p>
+                    </div>
+
+                    <div style="height: 8px;"></div>
+
+                </div>
+
+                <div style="padding: 10px 18px 12px; background: var(--card-bg); border-top: 1px solid var(--border);">
+                    <button class="btn-primary" onclick="calculateAndGoMatch()">查看匹配结果 &rarr;</button>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 匹配结果 ===== -->
+            <div class="screen" id="screen-3">
+
+                <div class="app-header">
+                    <p style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">匹配结果</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">
+                        为你找到&nbsp;<span style="color: var(--primary); font-weight: 500;" id="matchCount">--</span>&nbsp;位潜在舍友
+                    </p>
+                </div>
+
+                <div class="scroll-area" style="padding: 11px; display: flex; flex-direction: column; gap: 9px;" id="matchList">
+                    <!-- 空状态：未完成问卷 -->
+                    <div id="matchEmptyState" style="display: flex; flex-direction: column; align-items: center; padding: 48px 20px; gap: 12px;">
+                        <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--primary-light); display: flex; align-items: center; justify-content: center;">
+                            <i class="ti ti-file-description" style="font-size: 26px; color: var(--primary);"></i>
+                        </div>
+                        <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);">尚未完成问卷</p>
+                        <p style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.7;">请先填写作息习惯问卷<br>系统才能为你计算匹配结果</p>
+                        <button onclick="goTo(1)" style="margin-top: 4px; padding: 10px 24px; border-radius: 12px; border: none; background: var(--primary); color: white; font-size: 13px; cursor: pointer; font-weight: 500;">去填写问卷</button>
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item active" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 舍友详情 ===== -->
+            <div class="screen" id="screen-4">
+
+                <div class="app-header">
+                    <div class="header-row">
+                        <button class="back-btn" onclick="goTo(3)">
+                            <i class="ti ti-arrow-left"></i>
+                        </button>
+                        <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">舍友详情</span>
+                    </div>
+                </div>
+
+                <div class="scroll-area">
+
+                    <div style="background: var(--card-bg); padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <div style="position: relative;">
+                            <div class="avatar" style="width: 72px; height: 72px; background: var(--primary); font-size: 26px;" id="detailAvatar">李</div>
+                            <div style="position: absolute; bottom: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--success); border: 2.5px solid white;"></div>
+                        </div>
+                        <p style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-top: 2px;" id="detailName">李晓雨</p>
+                        <p style="font-size: 12px; color: var(--text-secondary);" id="detailInfo">计算机科学技术学院 · 大三 · 女</p>
+                        <div style="background: var(--success-light); border-radius: 20px; padding: 5px 18px; display: flex; align-items: center; gap: 7px;">
+                            <span style="font-size: 16px; font-weight: 600; color: #166534;" id="detailScore">89%</span>
+                            <span style="font-size: 11px; color: #166534;">匹配度</span>
+                        </div>
+                    </div>
+
+                    <!-- 作息时间轴 -->
+                    <div style="background: var(--card-bg); padding: 13px 18px; margin-bottom: 8px;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">
+                            <i class="ti ti-moon" style="color: #6366f1;"></i>&nbsp;作息时间
+                        </p>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 5px;">
+                            <span>20:00</span><span>22:00</span><span>00:00</span><span>04:00</span><span>08:00</span>
+                        </div>
+                        <div style="height: 10px; background: var(--page-bg); border-radius: 5px; position: relative;">
+                            <div id="sleepBar" style="position: absolute; height: 100%; background: var(--primary); border-radius: 5px; opacity: 0.8;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+                            <span id="sleepTime" style="font-size: 10px; color: var(--text-secondary);">就寝 23:00</span>
+                            <span id="wakeTime" style="font-size: 10px; color: var(--text-secondary);">起床 07:30</span>
+                        </div>
+                    </div>
+
+                    <!-- 生活习惯标签 -->
+                    <div style="background: var(--card-bg); padding: 13px 18px; margin-bottom: 8px;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">
+                            <i class="ti ti-sparkles" style="color: #f59e0b;"></i>&nbsp;生活习惯
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px;" id="detailTags">
+                        </div>
+                    </div>
+
+                    <!-- 自我介绍 -->
+                    <div style="background: var(--card-bg); padding: 13px 18px; margin-bottom: 8px;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px;">
+                            <i class="ti ti-message-circle" style="color: var(--primary);"></i>&nbsp;关于我
+                        </p>
+                        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.8;" id="detailBio">
+                        </p>
+                    </div>
+
+                </div>
+
+                <div style="padding: 10px 18px 12px; background: var(--card-bg); border-top: 1px solid var(--border); flex-shrink: 0;">
+                    <button class="btn-primary" onclick="goToRequest()">
+                        <i class="ti ti-send"></i>&nbsp;发起联系申请
+                    </button>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item active" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 发送申请 ===== -->
+            <div class="screen" id="screen-5">
+
+                <div class="app-header">
+                    <div class="header-row">
+                        <button class="back-btn" onclick="goTo(4)">
+                            <i class="ti ti-arrow-left"></i>
+                        </button>
+                        <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">发起联系申请</span>
+                    </div>
+                </div>
+
+                <div class="scroll-area" style="padding: 13px; display: flex; flex-direction: column; gap: 12px;">
+
+                    <div class="card" style="display: flex; align-items: center; gap: 12px;">
+                        <div class="avatar" style="width: 44px; height: 44px; background: var(--primary); font-size: 16px;" id="reqAvatar">李</div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);" id="reqName">李晓雨</p>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;" id="reqCollege">计算机科学技术学院</p>
+                        </div>
+                        <div style="background: var(--success-light); border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #166534;" id="reqMatch">89%</div>
+                    </div>
+
+                    <div class="card">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px;">附言（可选）</p>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 9px;">简短介绍自己，提高对方回应率</p>
+                        <textarea
+                            id="requestMsg"
+                            class="field"
+                            oninput="updateCounter()"
+                            maxlength="200"
+                            rows="4"
+                            placeholder="自我介绍一下，或说明为什么觉得你们合适..."
+                        >你好！看到我们的作息习惯很相近，我也是晚上 11 点左右睡，早上 7 点多起床。希望有机会成为舍友，一起努力！</textarea>
+                        <p id="charCounter" style="text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 4px;">46 / 200</p>
+                    </div>
+
+                    <div style="background: var(--warning-light); border-radius: 11px; padding: 11px 14px; display: flex; gap: 10px; align-items: flex-start;">
+                        <i class="ti ti-info-circle" style="color: #92400e; font-size: 16px; flex-shrink: 0; margin-top: 1px;"></i>
+                        <p style="font-size: 11px; color: #92400e; line-height: 1.65;">
+                            申请发出后对方将收到通知，需双方都接受后才能查看对方的联系方式。
+                        </p>
+                    </div>
+
+                </div>
+
+                <div style="padding: 10px 18px 12px; background: var(--card-bg); border-top: 1px solid var(--border); flex-shrink: 0;">
+                    <button class="btn-primary" onclick="sendRequest()">发送申请</button>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- ===== 消息 ===== -->
+            <div class="screen" id="screen-6">
+
+                <div class="app-header">
+                    <p style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">消息</p>
+                    <!-- 修复：独立 Tab 容器，固定高度防止变形 -->
+                    <div class="inbox-tabs">
+                        <button class="inbox-tab active" id="inboxTab0" onclick="switchInboxTab(0)">
+                            收到的 (<span id="receivedCountLabel">2</span>)
+                        </button>
+                        <button class="inbox-tab" id="inboxTab1" onclick="switchInboxTab(1)">
+                            发出的 (<span id="sentCountLabel">0</span>)
+                        </button>
+                        <button class="inbox-tab" id="inboxTab2" onclick="switchInboxTab(2)">
+                            聊天
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 统一使用 scroll-area 包裹所有列表，修复布局错乱 -->
+                <div class="scroll-area">
+                    <div id="receivedList" style="padding: 11px; display: flex; flex-direction: column; gap: 9px;">
+                        <div class="card" id="reqCard1">
+                            <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 8px;">
+                                <div class="avatar" style="width: 40px; height: 40px; background: #8b5cf6; font-size: 14px;">张</div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 13px; font-weight: 500; color: var(--text-primary);">
+                                        张宇航&nbsp;<span style="font-weight: 400; color: var(--text-muted); font-size: 11px;">发来了联系申请</span>
+                                    </p>
+                                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">土木工程学院</p>
+                                </div>
+                                <span style="font-size: 10px; color: var(--text-muted);">2小时前</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary); background: var(--page-bg); border-radius: 8px; padding: 9px 11px; margin-bottom: 10px; line-height: 1.6;">
+                                "你好！看我们的作息习惯好像挺像的，都是夜猫子哈哈，希望能成为室友！"
+                            </div>
+                            <div style="display: flex; gap: 8px;" id="reqCard1Btns">
+                                <button onclick="acceptRequest('reqCard1', '张宇航')" style="flex: 1; padding: 9px 0; border-radius: 9px; border: none; background: var(--primary); color: white; font-size: 12px; cursor: pointer; font-weight: 500;">接受</button>
+                                <button onclick="rejectRequest('reqCard1')" style="flex: 1; padding: 9px 0; border-radius: 9px; border: 1.5px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer;">拒绝</button>
+                            </div>
+                        </div>
+
+                        <div class="card" id="reqCard2">
+                            <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 8px;">
+                                <div class="avatar" style="width: 40px; height: 40px; background: var(--accent); font-size: 14px;">刘</div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 13px; font-weight: 500; color: var(--text-primary);">
+                                        刘嘉欣&nbsp;<span style="font-weight: 400; color: var(--text-muted); font-size: 11px;">发来了联系申请</span>
+                                    </p>
+                                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">美术学院</p>
+                                </div>
+                                <span style="font-size: 10px; color: var(--text-muted);">昨天</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary); background: var(--page-bg); border-radius: 8px; padding: 9px 11px; margin-bottom: 10px; line-height: 1.6;">
+                                "我们的作息时间特别相似，整洁度也差不多，感觉挺合拍的～"
+                            </div>
+                            <div style="display: flex; gap: 8px;" id="reqCard2Btns">
+                                <button onclick="acceptRequest('reqCard2', '刘嘉欣')" style="flex: 1; padding: 9px 0; border-radius: 9px; border: none; background: var(--primary); color: white; font-size: 12px; cursor: pointer; font-weight: 500;">接受</button>
+                                <button onclick="rejectRequest('reqCard2')" style="flex: 1; padding: 9px 0; border-radius: 9px; border: 1.5px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer;">拒绝</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sentList" style="display: none; padding: 11px; flex-direction: column; gap: 9px;">
+                    </div>
+
+                    <!-- 聊天列表 -->
+                    <div id="chatList" style="display: none; padding: 11px; flex-direction: column; gap: 9px;">
+                    </div>
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item active" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ===== 聊天界面 ===== -->
+            <div class="screen" id="screen-8">
+                <div class="app-header">
+                    <div class="header-row">
+                        <!-- 修复：点击返回箭头先切换到消息界面，再切换到聊天Tab -->
+                        <button class="back-btn" onclick="goTo(6); switchInboxTab(2);">
+                            <i class="ti ti-arrow-left"></i>
+                        </button>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="avatar" id="chatHeaderAvatar" style="width: 32px; height: 32px; font-size: 14px;"></div>
+                            <span id="chatHeaderName" style="font-size: 15px; font-weight: 500; color: var(--text-primary);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-empty">
+                            <p>开始聊天吧！</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendChatMessage()">
+                        <button class="send-btn" onclick="sendChatMessage()">
+                            <i class="ti ti-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== 我的主页 ===== -->
+            <div class="screen" id="screen-7">
+
+                <div class="app-header">
+                    <p style="font-size: 15px; font-weight: 500; color: var(--text-primary);">我的</p>
+                </div>
+
+                <div class="scroll-area">
+
+                    <div style="background: var(--card-bg); padding: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 13px;">
+                        <div class="avatar" style="width: 58px; height: 58px; background: #cbd5e1; font-size: 22px; color: #94a3b8;" id="myAvatar"><i class="ti ti-user" style="font-size: 26px;"></i></div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 17px; font-weight: 600; color: var(--text-primary);" id="myName">--</p>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;" id="myInfo">尚未填写资料</p>
+                        </div>
+                        <button onclick="goTo(1)" style="background: var(--primary-light); border: none; border-radius: 9px; padding: 7px 13px; color: var(--primary); font-size: 12px; cursor: pointer; font-weight: 500;">编辑</button>
+                    </div>
+
+                    <div style="background: var(--card-bg); padding: 13px 18px; margin-bottom: 8px;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 9px;">我的作息档案</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;" id="myTags">
+                            <span style="font-size: 12px; color: var(--text-muted);">完成作息问卷后显示</span>
+                        </div>
+                        <button onclick="goTo(2)" style="width: 100%; padding: 9px 0; border-radius: 9px; border: 1.5px solid var(--primary); background: transparent; color: var(--primary); font-size: 12px; cursor: pointer; font-weight: 500;">
+                            重新编辑作息问卷 &rarr;
+                        </button>
+                    </div>
+
+                    <div style="background: var(--card-bg); padding: 13px 18px; margin-bottom: 8px;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 12px;">匹配数据</p>
+                        <div style="display: flex;">
+                            <div style="flex: 1; text-align: center; border-right: 1px solid var(--border);">
+                                <p style="font-size: 24px; font-weight: 600; color: var(--primary);" id="myMatchCount">--</p>
+                                <p style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">潜在匹配</p>
+                            </div>
+                            <div style="flex: 1; text-align: center; border-right: 1px solid var(--border);">
+                                <p style="font-size: 24px; font-weight: 600; color: var(--primary);" id="myReceivedCount">2</p>
+                                <p style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">收到申请</p>
+                            </div>
+                            <div style="flex: 1; text-align: center;">
+                                <p style="font-size: 24px; font-weight: 600; color: var(--primary);" id="mySentCount">0</p>
+                                <p style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">发出申请</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--card-bg); margin-bottom: 8px;">
+                        <div onclick="showToast('功能开发中')" style="padding: 13px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer;">
+                            <span style="font-size: 13px; color: var(--text-primary);">隐私设置</span>
+                            <i class="ti ti-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                        </div>
+                        <div onclick="showToast('功能开发中')" style="padding: 13px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer;">
+                            <span style="font-size: 13px; color: var(--text-primary);">通知设置</span>
+                            <i class="ti ti-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                        </div>
+                        <div onclick="showToast('功能开发中')" style="padding: 13px 18px; display: flex; align-items: center; cursor: pointer;">
+                            <span style="font-size: 13px; color: var(--text-primary);">帮助与反馈</span>
+                            <i class="ti ti-chevron-right" style="margin-left: auto; color: var(--text-muted);"></i>
+                        </div>
+                    </div>
+
+                    <div style="padding: 0 18px 24px;">
+                        <button onclick="goTo(0)" style="width: 100%; padding: 12px 0; border-radius: 12px; border: 1.5px solid #fecaca; background: #fff5f5; color: #dc2626; font-size: 13px; cursor: pointer;">
+                            退出登录
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="bottom-nav">
+                    <button class="nav-item" onclick="goTo(3)">
+                        <i class="ti ti-users" style="font-size: 19px;"></i>发现
+                    </button>
+                    <button class="nav-item" onclick="goTo(6)">
+                        <i class="ti ti-message-2" style="font-size: 19px;"></i>消息
+                    </button>
+                    <button class="nav-item active" onclick="goTo(7)">
+                        <i class="ti ti-user-circle" style="font-size: 19px;"></i>我的
+                    </button>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+
+        // ── 全局状态 ──────────────────────────────────────────────────
+        let userAnswers = {};
+        let currentCandidate = null;
+        let currentMatchScore = 0;
+        let hasMatched = false;
+        let lastSortedResults = [];
+        let activeSentCount = 0;
+        let activeReceivedCount = 2;
+        let pairedUsers = []; // 已配对用户列表
+        let currentChatUser = null; // 当前聊天对象
+        let chatMessages = {}; // 聊天消息存储
+
+        // ── 样例候选人数据 ──────────────────────────────────────────────
+        const candidates = [
+            {name:"李晓雨",college:"计算机科学",grade:"大三",gender:"女",avatarColor:"var(--primary)",avatarText:"李",sleep:"22-24",wake:"7-8",clean:4,noise:"一般",temp:"适中",light:"准时",guest:"欢迎",study:"有时",share:"随意",weekend:"规律",bio:"我是计算机专业大三学生，作息规律，喜欢在宿舍学习，性格随和，希望找作息相近、爱干净的舍友~"},
+            {name:"陈思佳",college:"数学与统计",grade:"大二",gender:"女",avatarColor:"var(--accent)",avatarText:"陈",sleep:"22-24",wake:"8-9",clean:3,noise:"一般",temp:"适中",light:"无所谓",guest:"偶尔",study:"有时",share:"打招呼",weekend:"稍晚",bio:"数学系大二，平时喜欢看书追剧，作息比较规律，不喜欢吵闹，希望舍友互相尊重~"},
+            {name:"王梦琪",college:"外国语学院",grade:"大三",gender:"女",avatarColor:"var(--success)",avatarText:"王",sleep:"0-2",wake:"9后",clean:4,noise:"敏感",temp:"温暖",light:"准时",guest:"欢迎",study:"很少",share:"介意",weekend:"不固定",bio:"英语专业，喜欢熬夜学习，早上起得晚，爱干净，希望舍友能理解我的作息~"},
+            {name:"张雨晴",college:"新闻传播",grade:"大二",gender:"女",avatarColor:"#ec4899",avatarText:"张",sleep:"22前",wake:"7-8",clean:5,noise:"敏感",temp:"凉快",light:"准时",guest:"偶尔",study:"经常",share:"随意",weekend:"规律",bio:"新闻专业，早睡早起，非常爱干净，喜欢安静的环境，希望舍友和我一样规律~"},
+            {name:"刘思彤",college:"经济管理",grade:"大四",gender:"女",avatarColor:"#8b5cf6",avatarText:"刘",sleep:"22-24",wake:"8-9",clean:3,noise:"随意",temp:"适中",light:"无所谓",guest:"欢迎",study:"有时",share:"打招呼",weekend:"稍晚",bio:"经管大四，准备考研，作息稳定，性格开朗，希望找好相处的舍友~"},
+            {name:"周子涵",college:"法学院",grade:"大三",gender:"女",avatarColor:"#06b6d4",avatarText:"周",sleep:"0-2",wake:"9后",clean:2,noise:"一般",temp:"温暖",light:"开着",guest:"不接受",study:"很少",share:"介意",weekend:"不固定",bio:"法学专业，经常熬夜背书，不太喜欢访客，生活随意，希望舍友包容~"},
+            {name:"吴雨桐",college:"医学院",grade:"大三",gender:"女",avatarColor:"#10b981",avatarText:"吴",sleep:"22前",wake:"6前",clean:5,noise:"敏感",temp:"凉快",light:"准时",guest:"偶尔",study:"经常",share:"随意",weekend:"规律",bio:"医学生，作息非常规律，爱干净，喜欢安静学习，希望舍友作息同步~"},
+            {name:"郑雅馨",college:"建筑学院",grade:"大二",gender:"女",avatarColor:"#f97316",avatarText:"郑",sleep:"22-24",wake:"7-8",clean:4,noise:"一般",temp:"适中",light:"准时",guest:"欢迎",study:"有时",share:"打招呼",weekend:"规律",bio:"建筑专业，作息规律，喜欢画画，性格温和，希望找合拍的舍友~"},
+            {name:"赵嘉怡",college:"艺术学院",grade:"大四",gender:"女",avatarColor:"#6366f1",avatarText:"赵",sleep:"0-2",wake:"8-9",clean:3,noise:"随意",temp:"温暖",light:"无所谓",guest:"偶尔",study:"很少",share:"介意",weekend:"不固定",bio:"艺术生，作息自由，喜欢音乐，性格随性，希望舍友好沟通~"},
+            {name:"钱欣悦",college:"化学院",grade:"大一",gender:"女",avatarColor:"#84cc16",avatarText:"钱",sleep:"22前",wake:"7-8",clean:4,noise:"敏感",temp:"凉快",light:"准时",guest:"欢迎",study:"经常",share:"随意",weekend:"规律",bio:"化学大一新生，早睡早起，爱干净，喜欢学习，希望找积极向上的舍友~"},
+            {name:"孙艺菲",college:"工学院",grade:"大三",gender:"女",avatarColor:"#f43f5e",avatarText:"孙",sleep:"22-24",wake:"9后",clean:2,noise:"一般",temp:"适中",light:"开着",guest:"不接受",study:"有时",share:"打招呼",weekend:"稍晚",bio:"工科生，作息一般，不太喜欢收拾，希望舍友包容，不喜欢外人来宿舍~"},
+            {name:"周若曦",college:"理学院",grade:"大二",gender:"女",avatarColor:"#d946ef",avatarText:"周",sleep:"0-2",wake:"7-8",clean:5,noise:"随意",temp:"温暖",light:"准时",guest:"欢迎",study:"很少",share:"介意",weekend:"不固定",bio:"理学专业，熬夜学习，早上准时起，极度爱干净，性格开朗~"},
+            {name:"张宇航",college:"土木工程",grade:"大三",gender:"男",avatarColor:"#8b5cf6",avatarText:"张",sleep:"0-2",wake:"9后",clean:3,noise:"一般",temp:"适中",light:"无所谓",guest:"偶尔",study:"有时",share:"随意",weekend:"稍晚",bio:"土木工程专业，性格开朗，作息比较自由，喜欢交朋友！"},
+            {name:"刘嘉欣",college:"美术学院",grade:"大二",gender:"女",avatarColor:"var(--accent)",avatarText:"刘",sleep:"22-24",wake:"8-9",clean:4,noise:"敏感",temp:"适中",light:"准时",guest:"偶尔",study:"经常",share:"打招呼",weekend:"规律",bio:"美术生，喜欢安静创作，作息规律，爱干净，希望找合拍的舍友~"},
+            
+            {name:"王浩宇",college:"计算机科学",grade:"大三",gender:"男",avatarColor:"#3b82f6",avatarText:"王",sleep:"0-2",wake:"8-9",clean:3,noise:"一般",temp:"凉快",light:"开着",guest:"欢迎",study:"有时",share:"打招呼",weekend:"稍晚",bio:"计科大三，经常熬夜写代码打游戏，性格直爽，希望舍友别太介意晚上敲键盘。"},
+            {name:"李俊杰",college:"土木工程",grade:"大二",gender:"男",avatarColor:"#eab308",avatarText:"李",sleep:"22-24",wake:"7-8",clean:4,noise:"敏感",temp:"适中",light:"准时",guest:"偶尔",study:"经常",share:"随意",weekend:"规律",bio:"土木老哥，喜欢健身，作息规律，对宿舍卫生有一定要求，晚上睡觉需要安静。"},
+            {name:"张明轩",college:"经济管理",grade:"大四",gender:"男",avatarColor:"#ef4444",avatarText:"张",sleep:"22前",wake:"6前",clean:5,noise:"一般",temp:"温暖",light:"准时",guest:"不接受",study:"很少",share:"介意",weekend:"规律",bio:"考研党，早起去图书馆，晚上回来倒头就睡。有轻微洁癖，希望能找个同样爱干净的舍友。"},
+            {name:"刘博文",college:"外国语学院",grade:"大一",gender:"男",avatarColor:"#10b981",avatarText:"刘",sleep:"22-24",wake:"7-8",clean:3,noise:"随意",temp:"适中",light:"无所谓",guest:"欢迎",study:"有时",share:"随意",weekend:"不固定",bio:"大一新生，性格外向喜欢交朋友，周末可能会带同学来玩，好说话不记仇。"},
+            {name:"陈梓航",college:"医学院",grade:"大三",gender:"男",avatarColor:"#8b5cf6",avatarText:"陈",sleep:"0-2",wake:"7-8",clean:4,noise:"敏感",temp:"凉快",light:"准时",guest:"偶尔",study:"经常",share:"介意",weekend:"稍晚",bio:"医学生，课业繁重经常熬夜复习，但早上起得早。睡眠浅，所以睡觉时必须关灯保持安静。"},
+            {name:"赵子睿",college:"机械工程",grade:"大二",gender:"男",avatarColor:"#f97316",avatarText:"赵",sleep:"2后",wake:"9后",clean:2,noise:"随意",temp:"适中",light:"开着",guest:"欢迎",study:"很少",share:"随意",weekend:"不固定",bio:"夜猫子，通宵达旦是常态，东西乱放但能找到。对舍友完全没要求，只要别管我就行。"}
+        ];
+
+        // ── 界面导航 ──────────────────────────────────────────────────
+        const screens = [
+            { id: 'screen-0', label: '欢迎' },
+            { id: 'screen-1', label: '注册' },
+            { id: 'screen-2', label: '作息问卷' },
+            { id: 'screen-3', label: '匹配结果' },
+            { id: 'screen-4', label: '舍友详情' },
+            { id: 'screen-5', label: '发送申请' },
+            { id: 'screen-6', label: '消息' },
+            { id: 'screen-7', label: '我的' },
+            { id: 'screen-8', label: '聊天' },
+        ];
+
+        function initTabs() {
+            const container = document.getElementById('screenTabs');
+            screens.forEach((screen, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'screen-tab' + (index === 0 ? ' active' : '');
+                btn.id = 'tab-' + index;
+                btn.textContent = screen.label;
+                btn.onclick = () => goTo(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function goTo(index) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screens[index].id).classList.add('active');
+            document.querySelectorAll('.screen-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+        }
+
+        // ── Pill 按钮单选 ────────────────────────────────────────────
+        document.querySelectorAll('[data-group]').forEach(group => {
+            group.querySelectorAll('.pill-btn').forEach(btn => {
+                btn.onclick = () => {
+                    group.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                };
+            });
+        });
+
+        // ── 星级评分 ─────────────────────────────────────────────────
+        const starLabels = ['', '比较乱', '一般', '还好', '较整洁', '非常整洁'];
+        let currentRating = 4;
+
+        document.querySelectorAll('.star').forEach(star => {
+            star.onclick = () => {
+                currentRating = parseInt(star.dataset.star);
+                renderStars(currentRating);
+            };
+            star.onmouseenter = () => renderStars(parseInt(star.dataset.star));
+            star.onmouseleave = () => renderStars(currentRating);
+        });
+
+        function renderStars(rating) {
+            document.querySelectorAll('.star').forEach((s, i) => {
+                s.style.color = (i + 1) <= rating ? '#f59e0b' : '#e2e8f0';
+            });
+            document.getElementById('starLabel').textContent = starLabels[rating];
+        }
+
+        // ── 字数统计 ─────────────────────────────────────────────────
+        function updateCounter() {
+            const ta = document.getElementById('requestMsg');
+            document.getElementById('charCounter').textContent = ta.value.length + ' / 200';
+        }
+
+        function updateBioCounter() {
+            const ta = document.getElementById('bioInput');
+            document.getElementById('bioCounter').textContent = ta.value.length + ' / 300';
+        }
+
+        // ── 收集用户答案 ──────────────────────────────────────────────
+        function collectUserAnswers() {
+            userAnswers = {
+                name:     document.getElementById('userName').value.trim() || '匿名用户',
+                college:  document.getElementById('userCollege').value.trim() || '未填写',
+                grade:    document.querySelector('[data-group="grade"] .pill-btn.selected').dataset.val,
+                gender:   document.querySelector('[data-group="gender"] .pill-btn.selected').dataset.val,
+                sleep:    document.querySelector('[data-group="sleep"] .pill-btn.selected').dataset.val,
+                wake:     document.querySelector('[data-group="wake"] .pill-btn.selected').dataset.val,
+                weekend:  document.querySelector('[data-group="weekend"] .pill-btn.selected').dataset.val,
+                clean:    currentRating,
+                noise:    document.querySelector('[data-group="noise"] .pill-btn.selected').dataset.val,
+                temp:     document.querySelector('[data-group="temp"] .pill-btn.selected').dataset.val,
+                light:    document.querySelector('[data-group="light"] .pill-btn.selected').dataset.val,
+                guest:    document.querySelector('[data-group="guest"] .pill-btn.selected').dataset.val,
+                study:    document.querySelector('[data-group="study"] .pill-btn.selected').dataset.val,
+                share:    document.querySelector('[data-group="share"] .pill-btn.selected').dataset.val,
+            };
+            updateMyPage();
+        }
+
+        // ── 匹配算法 ────────────────────────────────────────────────
+        function calcMatch(user, p) {
+            let score = 0;
+
+            const sleepMap  = { "22前": 1, "22-24": 2, "0-2": 3, "2后": 4 };
+            const wakeMap   = { "6前": 1, "7-8": 2, "8-9": 3, "9后": 4 };
+            const sleepDiff = Math.abs(sleepMap[user.sleep] - sleepMap[p.sleep]);
+            const wakeDiff  = Math.abs(wakeMap[user.wake]  - wakeMap[p.wake]);
+
+            score += sleepDiff === 0 ? 18 : sleepDiff === 1 ? 10 : sleepDiff === 2 ? 4 : 0;
+            score += wakeDiff  === 0 ? 17 : wakeDiff  === 1 ? 9  : wakeDiff  === 2 ? 3 : 0;
+
+            const cleanDiff = Math.abs(user.clean - p.clean);
+            score += cleanDiff === 0 ? 20 : cleanDiff === 1 ? 13 : cleanDiff === 2 ? 6 : 1;
+
+            score += user.noise === p.noise ? 15 : 0;
+            score += user.temp  === p.temp  ? 10 : 0;
+
+            score += user.light  === p.light  ? 5 : 0;
+            score += user.guest  === p.guest  ? 5 : 0;
+            score += user.study  === p.study  ? 5 : 0;
+            score += user.share  === p.share  ? 5 : 0;
+
+            const noise = Math.floor(Math.random() * 9) - 4;
+            score += noise;
+
+            return Math.min(98, Math.max(20, Math.round(score)));
+        }
+
+        function buildMatchTags(user, p, score) {
+            const tags = [];
+
+            const sleepMap  = { "22前": 1, "22-24": 2, "0-2": 3, "2后": 4 };
+            const wakeMap   = { "6前": 1, "7-8": 2, "8-9": 3, "9后": 4 };
+            const sleepDiff = Math.abs(sleepMap[user.sleep] - sleepMap[p.sleep]);
+            const wakeDiff  = Math.abs(wakeMap[user.wake]   - wakeMap[p.wake]);
+
+            if (sleepDiff === 0)      tags.push({ text: '就寝时间完全一致', cls: '' });
+            else if (sleepDiff === 1) tags.push({ text: '就寝时间相近',   cls: '' });
+
+            if (wakeDiff === 0)       tags.push({ text: '起床时间完全一致', cls: '' });
+            else if (wakeDiff === 1)  tags.push({ text: '起床时间相近',   cls: '' });
+
+            const cleanDiff = Math.abs(user.clean - p.clean);
+            if (cleanDiff <= 1)       tags.push({ text: '整洁度相近', cls: 'green' });
+
+            if (user.noise === p.noise) tags.push({ text: '噪音偏好一致', cls: '' });
+            if (user.temp  === p.temp)  tags.push({ text: '室温偏好一致', cls: '' });
+            if (user.guest === p.guest) tags.push({ text: '访客态度相同', cls: user.guest === '欢迎' ? 'green' : 'amber' });
+            if (user.study === p.study) tags.push({ text: '学习习惯相似', cls: '' });
+            if (user.share === p.share) tags.push({ text: '日用品习惯相同', cls: '' });
+
+            return tags.slice(0, 3);
+        }
+
+        function renderMatchList(sorted) {
+            const list = document.getElementById('matchList');
+            list.innerHTML = '';
+
+            sorted.forEach((item, idx) => {
+                const scoreColor = item.score >= 85 ? '#166534' : item.score >= 70 ? 'var(--primary)' : 'var(--text-secondary)';
+                const tags = buildMatchTags(userAnswers, item.p, item.score);
+                const tagsHtml = tags.map(t => `<span class="tag ${t.cls}">${t.text}</span>`).join('');
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 9px;">
+                        <div class="avatar" style="width: 44px; height: 44px; background: ${item.p.avatarColor}; font-size: 16px;">${item.p.avatarText}</div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);">${item.p.name}</p>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${item.p.college} · ${item.p.grade}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 22px; font-weight: 600; color: ${scoreColor};">${item.score}%</p>
+                            <p style="font-size: 10px; color: var(--text-muted);">匹配度</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 9px;">${tagsHtml}</div>
+                    <button onclick="viewDetail(${idx})" style="width: 100%; padding: 9px 0; border-radius: 9px; border: 1.5px solid var(--primary); background: transparent; color: var(--primary); font-size: 12px; cursor: pointer; font-weight: 500;">查看详情</button>
+                `;
+                list.appendChild(card);
+            });
+
+            document.getElementById('matchCount').textContent    = sorted.length;
+            document.getElementById('myMatchCount').textContent  = sorted.length;
+        }
+
+        function getSleepTime(val) {
+            const map = { '22前': {time:'21:30',pos:'22%'}, '22-24': {time:'23:00',pos:'37%'}, '0-2': {time:'01:00',pos:'50%'}, '2后': {time:'02:30',pos:'60%'} };
+            return map[val] || map['22-24'];
+        }
+
+        function getWakeTime(val) {
+            const map = { '6前': {time:'06:00',pos:'10%'}, '7-8': {time:'07:30',pos:'20%'}, '8-9': {time:'08:30',pos:'30%'}, '9后': {time:'09:30',pos:'40%'} };
+            return map[val] || map['7-8'];
+        }
+
+        function viewDetail(index) {
+            const item = lastSortedResults[index];
+            if (!item) return;
+
+            currentCandidate  = item.p;
+            currentMatchScore = item.score;
+
+            document.getElementById('detailAvatar').style.background = currentCandidate.avatarColor;
+            document.getElementById('detailAvatar').textContent       = currentCandidate.avatarText;
+            document.getElementById('detailName').textContent         = currentCandidate.name;
+            document.getElementById('detailInfo').textContent         = `${currentCandidate.college} · ${currentCandidate.grade} · ${currentCandidate.gender}`;
+            document.getElementById('detailScore').textContent        = currentMatchScore + '%';
+            document.getElementById('detailBio').textContent          = currentCandidate.bio;
+
+            const sleep = getSleepTime(currentCandidate.sleep);
+            const wake  = getWakeTime(currentCandidate.wake);
+            document.getElementById('sleepTime').textContent  = `就寝 ${sleep.time}`;
+            document.getElementById('wakeTime').textContent   = `起床 ${wake.time}`;
+            document.getElementById('sleepBar').style.left   = sleep.pos;
+            document.getElementById('sleepBar').style.right  = wake.pos;
+
+            const sleepLabel = { '22前':'早睡型', '22-24':'夜睡型', '0-2':'熬夜型', '2后':'深夜型' };
+            const tags = document.getElementById('detailTags');
+            tags.innerHTML = `
+                <span class="tag">${sleepLabel[currentCandidate.sleep] || '夜睡型'}</span>
+                <span class="tag green">整洁 ★${currentCandidate.clean}</span>
+                <span class="tag">噪音${currentCandidate.noise}</span>
+                <span class="tag ${currentCandidate.guest==='欢迎'?'green':currentCandidate.guest==='偶尔'?'amber':'red'}">${currentCandidate.guest}来访</span>
+                <span class="tag">室温${currentCandidate.temp}</span>
+                <span class="tag">学习${currentCandidate.study}</span>
+            `;
+
+            goTo(4);
+        }
+
+        function goToRequest() {
+            if (!currentCandidate) return;
+            document.getElementById('reqAvatar').style.background = currentCandidate.avatarColor;
+            document.getElementById('reqAvatar').textContent      = currentCandidate.avatarText;
+            document.getElementById('reqName').textContent        = currentCandidate.name;
+            document.getElementById('reqCollege').textContent     = currentCandidate.college;
+            document.getElementById('reqMatch').textContent       = currentMatchScore + '%';
+            goTo(5);
+        }
+
+        function calculateAndGoMatch() {
+            collectUserAnswers();
+            
+            const sameGenderCandidates = candidates.filter(p => p.gender === userAnswers.gender);
+            
+            const withScore = sameGenderCandidates.map(p => ({ p, score: calcMatch(userAnswers, p) }))
+                .sort((a, b) => b.score - a.score);
+                
+            lastSortedResults = withScore;
+            hasMatched = true;
+            renderMatchList(withScore);
+            goTo(3);
+        }
+
+        function sendRequest() {
+            if (!currentCandidate) return;
+
+            activeSentCount++;
+            updateAllStats();
+
+            const sentList = document.getElementById('sentList');
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 8px;">
+                    <div class="avatar" style="width: 40px; height: 40px; background: ${currentCandidate.avatarColor}; font-size: 14px;">${currentCandidate.avatarText}</div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 13px; font-weight: 500; color: var(--text-primary);">${currentCandidate.name}</p>
+                        <p style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${currentCandidate.college}</p>
+                    </div>
+                    <span style="background: var(--warning-light); color: #92400e; font-size: 10px; font-weight: 500; border-radius: 6px; padding: 3px 9px;">待回应</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); background: var(--page-bg); border-radius: 8px; padding: 9px 11px; margin-bottom: 7px; line-height: 1.6;">
+                    "${document.getElementById('requestMsg').value}"
+                </div>
+                <p style="font-size: 10px; color: var(--text-muted);">刚刚 · ${currentMatchScore}% 匹配度</p>
+            `;
+            sentList.prepend(card);
+
+            showToast('申请已发送，等待对方回应 🎉');
+            setTimeout(() => goTo(6), 1300);
+        }
+
+        // 接受申请后添加到配对列表 - 修复：去重逻辑 + 强制刷新聊天
+        function acceptRequest(cardId, userName) {
+            const btnGroup = document.getElementById(cardId + 'Btns');
+            btnGroup.innerHTML = '<p style="text-align: center; padding: 8px 0; font-size: 12px; color: #166534; font-weight: 500;"><i class="ti ti-check"></i> 已接受，聊天已解锁</p>';
+            
+            // 查找用户并添加到配对列表（修复：防止重复添加）
+            const user = candidates.find(c => c.name === userName);
+            if (user) {
+                const exists = pairedUsers.some(p => p.name === user.name);
+                if (!exists) {
+                    pairedUsers.push(user);
+                }
+            }
+            
+            // 强制刷新聊天列表
+            renderChatList();
+            showToast('已接受申请，现在可以聊天了');
+        }
+
+        function rejectRequest(cardId) {
+            const card = document.getElementById(cardId);
+            const btnGroup = document.getElementById(cardId + 'Btns');
+            card.style.opacity = '0.45';
+            card.style.pointerEvents = 'none';
+            btnGroup.innerHTML = '<p style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 5px 0;">已拒绝</p>';
+            showToast('已拒绝该申请');
+        }
+
+        // 消息Tab切换（新增聊天Tab）- 修复：样式统一管理
+        function switchInboxTab(tab) {
+            const received = document.getElementById('receivedList');
+            const sent     = document.getElementById('sentList');
+            const chatList = document.getElementById('chatList');
+            
+            // 所有Tab重置
+            document.querySelectorAll('.inbox-tab').forEach(t => t.classList.remove('active'));
+            // 当前Tab激活
+            document.getElementById(`inboxTab${tab}`).classList.add('active');
+
+            received.style.display = tab === 0 ? 'flex' : 'none';
+            sent.style.display     = tab === 1 ? 'flex' : 'none';
+            chatList.style.display = tab === 2 ? 'flex' : 'none';
+            
+            if (tab === 2) {
+                renderChatList();
+            }
+        }
+
+        // 渲染聊天列表 - 修复：完整渲染所有已配对用户 + 空状态正确显示
+        function renderChatList() {
+            const container = document.getElementById('chatList');
+            if (!container) return;
+            
+            // 清空容器
+            container.innerHTML = '';
+            
+            // 空状态
+            if (pairedUsers.length === 0) {
+                const emptyHtml = `
+                    <div class="chat-empty">
+                        <i class="ti ti-message" style="font-size: 32px; margin-bottom: 8px;"></i>
+                        <p>暂无聊天，接受申请后即可开始对话</p>
+                    </div>
+                `;
+                container.innerHTML = emptyHtml;
+                return;
+            }
+            
+            // 遍历所有配对用户并渲染
+            pairedUsers.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => openChat(user);
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="avatar" style="width: 44px; height: 44px; background: ${user.avatarColor}; font-size: 16px;">${user.avatarText}</div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 14px; font-weight: 500; color: var(--text-primary);">${user.name}</p>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${user.college}</p>
+                        </div>
+                        <i class="ti ti-chevron-right" style="color: var(--text-muted);"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 打开聊天界面
+        function openChat(user) {
+            currentChatUser = user;
+            document.getElementById('chatHeaderAvatar').style.background = user.avatarColor;
+            document.getElementById('chatHeaderAvatar').textContent = user.avatarText;
+            document.getElementById('chatHeaderName').textContent = user.name;
+            renderChatMessages();
+            goTo(8);
+        }
+
+        // 渲染聊天消息
+        function renderChatMessages() {
+            if (!currentChatUser) return;
+            
+            const container = document.getElementById('chatMessages');
+            const messages = chatMessages[currentChatUser.name] || [];
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="chat-empty"><p>开始聊天吧！</p></div>';
+                return;
+            }
+            
+            container.innerHTML = messages.map(msg => `
+                <div class="chat-message ${msg.type === 'sent' ? 'message-sent' : 'message-received'}">
+                    ${msg.text}
+                </div>
+            `).join('');
+            
+            // 滚动到底部
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 发送聊天消息
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text || !currentChatUser) return;
+            
+            // 初始化消息数组
+            if (!chatMessages[currentChatUser.name]) {
+                chatMessages[currentChatUser.name] = [];
+            }
+            
+            // 添加自己发送的消息
+            chatMessages[currentChatUser.name].push({
+                type: 'sent',
+                text: text
+            });
+            
+            // 模拟对方回复
+            setTimeout(() => {
+                const replies = [
+                    '你好呀！很高兴认识你😊',
+                    '我们的作息确实很像呢',
+                    '希望能成为好舍友！',
+                    '你平时有什么爱好吗？',
+                    '我也喜欢这样的生活习惯'
+                ];
+                const reply = replies[Math.floor(Math.random() * replies.length)];
+                
+                chatMessages[currentChatUser.name].push({
+                    type: 'received',
+                    text: reply
+                });
+                
+                renderChatMessages();
+            }, 1000);
+            
+            input.value = '';
+            renderChatMessages();
+        }
+
+        function updateAllStats() {
+            document.getElementById('receivedCountLabel').textContent = activeReceivedCount;
+            document.getElementById('sentCountLabel').textContent     = activeSentCount;
+            document.getElementById('myReceivedCount').textContent    = activeReceivedCount;
+            document.getElementById('mySentCount').textContent        = activeSentCount;
+        }
+
+        function updateMyPage() {
+            if (!userAnswers.name) return;
+
+            const avatarEl = document.getElementById('myAvatar');
+            avatarEl.innerHTML = '';
+            avatarEl.style.background = 'var(--primary)';
+            avatarEl.style.fontSize   = '20px';
+            avatarEl.style.color      = 'white';
+            avatarEl.textContent      = userAnswers.name.substring(0, 1);
+
+            document.getElementById('myName').textContent = userAnswers.name;
+            document.getElementById('myInfo').textContent = `${userAnswers.college} · ${userAnswers.grade}`;
+
+            const sleep = getSleepTime(userAnswers.sleep);
+            const wake  = getWakeTime(userAnswers.wake);
+            const myTags = document.getElementById('myTags');
+            myTags.innerHTML = `
+                <span class="tag">${sleep.time} 入睡</span>
+                <span class="tag">${wake.time} 起床</span>
+                <span class="tag green">${starLabels[userAnswers.clean]} ★${userAnswers.clean}</span>
+                <span class="tag">噪音${userAnswers.noise}</span>
+                <span class="tag ${userAnswers.guest==='欢迎'?'green':userAnswers.guest==='偶尔'?'amber':'red'}">${userAnswers.guest}来访</span>
+                <span class="tag">室温${userAnswers.temp}</span>
+            `;
+        }
+
+        let toastTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 2300);
+        }
+
+        initTabs();
+        updateAllStats();
+
+    </script>
+
+</body>
+</html>
